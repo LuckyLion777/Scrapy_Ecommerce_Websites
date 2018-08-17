@@ -61,17 +61,29 @@ class NutCrawler(scrapy.Spider):
             item['title'] = title.split('-')[1].strip()
         else:
             item['title'] = title
-        item['description'] = remove_tags(response.xpath('//meta[@property="og:description"]/@content').extract_first())
+        # item['description'] = remove_tags(response.xpath('//meta[@property="og:description"]/@content').extract_first())
+        item['description'] = response.xpath('//meta[@property="og:description"]/@content').extract_first()
         price = response.xpath('//meta[@property="og:price:amount"]/@content').extract_first()
         item['price'] = '$' + price if price else None
-        item['image_urls'] = response.xpath('//meta[@property="og:image"]/@content').extract_first()
+        images = response.xpath('//ul[@id="airSlider"]/li//a/img/@src').extract()
+        if images:
+            images = list(set(images))
+            item['image_urls'] = [enlarge_image(img) for img in images]
+        else:
+            item['image_urls'] = enlarge_image(response.xpath('//meta[@property="og:image"]/@content').extract_first())
+
         item['sku'] = response.xpath('//div[@class="sku-number"]/span/text()').extract_first()
 
         yield item
 
 
-TAG_RE = re.compile(r'<[^>]+>')
+def enlarge_image(image_url):
+    if image_url and '.jpg' in image_url:
+        return image_url.split('.jpg')[0][:-1] + '5' + '.jpg'
+    return image_url
 
-
-def remove_tags(text):
-    return TAG_RE.sub('', text)
+# TAG_RE = re.compile(r'<[^>]+>')
+#
+#
+# def remove_tags(text):
+#     return TAG_RE.sub('', text)
