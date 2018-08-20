@@ -13,6 +13,7 @@ class NutItem(scrapy.Item):
     title = scrapy.Field()
     description = scrapy.Field()
     price = scrapy.Field()
-    image_urls = scrapy.Field()
+    main_image_url = scrapy.Field()
+    additional_image_urls = scrapy.Field()
     sku = scrapy.Field()
     category = scrapy.Field()

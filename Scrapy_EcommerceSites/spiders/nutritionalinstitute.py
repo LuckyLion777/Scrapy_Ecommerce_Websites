@@ -1,5 +1,4 @@
 import scrapy
-import re
 from urllib.parse import urljoin
 from Scrapy_EcommerceSites.items import NutItem
 
@@ -65,12 +64,16 @@ class NutCrawler(scrapy.Spider):
         item['description'] = response.xpath('//meta[@property="og:description"]/@content').extract_first()
         price = response.xpath('//meta[@property="og:price:amount"]/@content').extract_first()
         item['price'] = '$' + price if price else None
+        item['main_image_url'] = enlarge_image(response.xpath('//meta[@property="og:image"]/@content').extract_first())
         images = response.xpath('//ul[@id="airSlider"]/li//a/img/@src').extract()
         if images:
+            image_list = []
             images = list(set(images))
-            item['image_urls'] = [enlarge_image(img) for img in images]
-        else:
-            item['image_urls'] = enlarge_image(response.xpath('//meta[@property="og:image"]/@content').extract_first())
+            # item['main_image_url'] = [enlarge_image(img) for img in images]
+            for img in images:
+                if enlarge_image(img) != item['main_image_url']:
+                    image_list.append(enlarge_image(img))
+            item['additional_image_urls'] = image_list
 
         item['sku'] = response.xpath('//div[@class="sku-number"]/span/text()').extract_first()
 
